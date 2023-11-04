@@ -119,12 +119,12 @@ optimizer = torch.optim.AdamW(m.parameters(), lr=1e-3)
 
 for iter in range(max_iters):
 
-    #every once in a while evaluate the loss on train and val sets
-    if iter % eval_interval == 0:
-        losses = estimate_loss()
-        print(f"step {iter}: train loss {losses['train']:.4f}, val loss: {losses['val']:.4f}")
+  #every once in a while evaluate the loss on train and val sets
+  if iter % eval_interval == 0:
+      losses = estimate_loss()
+      print(f"step {iter}: train loss {losses['train']:.4f}, val loss: {losses['val']:.4f}")
 
-  #sample a batch of data
+#sample a batch of data
   xb,yb = get_batch('train')
 
   #evaluate the loss
