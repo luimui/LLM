@@ -50,26 +50,23 @@ def get_batch(split):
   ix = torch.randint(len(data) - block_size, (batch_size,))
   x = torch.stack([data[i:i+block_size] for i in ix])
   y = torch.stack([data[i+1:i+block_size+1] for i in ix])
-  x,y = x.to(device) y.to(device)
+  x,y = x.to(device), y.to(device)
   return x,y
 
-xb,yb = get_batch('train')
-print('inputs:')
-print(xb.shape)
-print(xb)
-print('targets:')
-print(yb.shape)
-print(yb)
+@torch.no_grad()
+def estimate_loss():
+    out = {}
+    model.eval()
+    for split in ['train', 'eval']:
+        losses = torch.zeros(eval_iters)
+        for k in range(eval_iters):
+            X, Y = get_batch(split)
+            logits, loss = model(X, Y)
+            losses[k] = loss.item()
+        out[split] = losses.mean()
+    model.train()
+    return out
 
-print('--------------------------------------')
-
-for b in range (batch_size):
-  for t in range(block_size):
-    context = xb[b, :t+1]
-    target = yb[b,t]
-    print(f"when input is {context} the target is: {target}")
-
-print(f"input: \n {xb}")
 
 
 #Bigramm Language Model
@@ -120,8 +117,12 @@ m = model.to(device)
 #PyTorch Optimizer
 optimizer = torch.optim.AdamW(m.parameters(), lr=1e-3)
 
-batch_size=32
-for steps in range(1000):
+for iter in range(max_iters):
+
+    #every once in a while evaluate the loss on train and val sets
+    if iter % eval_interval == 0:
+        losses = estimate_loss()
+        print(f"step {iter}: train loss {losses['train']:.4f}, val loss: {losses['val']:.4f}")
 
   #sample a batch of data
   xb,yb = get_batch('train')
